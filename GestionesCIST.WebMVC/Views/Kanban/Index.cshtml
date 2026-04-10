@@ -1,0 +1,358 @@
+﻿@model KanbanViewModel
+@{
+    ViewData["Title"] = "Tablero Kanban";
+    Layout = "_Layout";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-kanban text-primary"></i> Tablero de Control - Reparaciones Carry-In</h2>
+        <div class="btn-group">
+            <button class="btn btn-outline-primary" onclick="actualizarTablero()">
+                <i class="bi bi-arrow-clockwise"></i> Actualizar
+            </button>
+            <a asp-controller="Tickets" asp-action="Pendientes" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Tickets Pendientes
+            </a>
+        </div>
+    </div>
+
+    <!-- Resumen KPIs -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h6>Órdenes Activas</h6>
+                    <h2>@Model.Resumen.TotalOrdenesActivas</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <h6>Retrasadas</h6>
+                    <h2>@Model.Resumen.OrdenesRetrasadas</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <h6>Críticas</h6>
+                    <h2>@Model.Resumen.OrdenesCriticas</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h6>Técnicos Disponibles</h6>
+                    <h2>@Model.Resumen.TecnicosDisponibles</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerta IA -->
+    <div id="alertaIA" class="alert alert-warning alert-dismissible fade show" style="display:none;">
+        <i class="bi bi-robot"></i>
+        <span id="mensajeIA"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Tablero Kanban -->
+    <div class="kanban-board d-flex gap-3 overflow-auto pb-4">
+        @foreach (var columna in Model.Columnas)
+        {
+            <div class="kanban-column" data-estado="@columna.Estado"
+                 ondragover="allowDrop(event)"
+                 ondrop="drop(event, '@columna.Estado')">
+
+                <div class="kanban-header @columna.ColorClase">
+                    <h5>@columna.Nombre</h5>
+                    <span class="badge bg-light text-dark">@columna.Tarjetas.Count / @columna.LimiteWIP</span>
+                </div>
+
+                <div class="kanban-body">
+                    @foreach (var tarjeta in columna.Tarjetas)
+                    {
+                        <div class="kanban-card @(tarjeta.EstaRetrasada ? "border-danger" : "")"
+                             draggable="true"
+                             ondragstart="drag(event)"
+                             id="orden_@tarjeta.Id"
+                             data-id="@tarjeta.Id"
+                             data-estado="@columna.Estado"
+                             onclick="mostrarDetalleOrden(@tarjeta.Id)">
+
+                            <div class="card-header-custom d-flex justify-content-between align-items-center">
+                                <span class="fw-bold">@tarjeta.NumeroOrden</span>
+                                <div>
+                                    @if (tarjeta.EsGarantia)
+                                    {
+                                        <span class="badge bg-warning text-dark" title="Garantía">
+                                            <i class="bi bi-shield-check"></i>
+                                        </span>
+                                    }
+                                    @if (tarjeta.Prioridad == "Critica")
+                                    {
+                                        <span class="badge bg-danger" title="Prioridad Crítica">
+                                            <i class="bi bi-exclamation-triangle"></i>
+                                        </span>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="card-body-custom">
+                                <small class="text-muted">@tarjeta.Cliente</small>
+                                <p class="mb-1 fw-semibold">@tarjeta.Marca @tarjeta.Modelo</p>
+
+                                @if (!string.IsNullOrEmpty(tarjeta.TecnicoAsignado))
+                                {
+                                    <small><i class="bi bi-person"></i> @tarjeta.TecnicoAsignado</small>
+                                }
+
+                                @if (tarjeta.ProbabilidadExitoQA.HasValue)
+                                {
+                                    var prob = tarjeta.ProbabilidadExitoQA.Value;
+                                    var color = prob < 0.5m ? "danger" : (prob < 0.7m ? "warning" : "success");
+                                    <div class="mt-2">
+                                        <small class="text-@color">
+                                            <i class="bi bi-cpu"></i> IA: @prob.ToString("P0")
+                                        </small>
+                                    </div>
+                                }
+
+                                <div class="mt-2 text-muted">
+                                    <small><i class="bi bi-clock"></i> @tarjeta.TiempoEnEstado</small>
+                                </div>
+
+                                @if (!string.IsNullOrEmpty(tarjeta.AlertaIA))
+                                {
+                                    <div class="alert alert-warning p-1 mt-2 small">
+                                        <i class="bi bi-exclamation-triangle"></i> @tarjeta.AlertaIA
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Modal Detalle de Orden -->
+<div class="modal fade" id="ordenModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detalle de Orden</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="ordenDetalleContent">
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .kanban-board {
+            min-height: 70vh;
+        }
+
+        .kanban-column {
+            min-width: 320px;
+            max-width: 350px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .kanban-header {
+            padding: 15px;
+            border-radius: 12px 12px 0 0;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+            .kanban-header h5 {
+                margin: 0;
+                font-size: 1rem;
+            }
+
+        .kanban-body {
+            padding: 10px;
+            min-height: 400px;
+            max-height: calc(100vh - 250px);
+            overflow-y: auto;
+        }
+
+        .kanban-card {
+            background: white;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            cursor: grab;
+            transition: all 0.2s;
+            border-left: 4px solid #667eea;
+        }
+
+            .kanban-card:hover {
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                transform: translateY(-2px);
+            }
+
+            .kanban-card.border-danger {
+                border-left-color: #dc3545;
+            }
+
+            .kanban-card:active {
+                cursor: grabbing;
+            }
+
+        .card-header-custom {
+            margin-bottom: 8px;
+        }
+
+        .card-body-custom {
+            font-size: 0.9rem;
+        }
+
+        .bg-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        }
+
+        .bg-info {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%) !important;
+        }
+
+        .bg-warning {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%) !important;
+        }
+
+        .bg-success {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%) !important;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/kanbanHub")
+            .withAutomaticReconnect()
+            .build();
+
+        connection.on("OrdenAsignada", (data) => {
+            Swal.fire({
+                icon: 'success',
+                title: 'Orden Asignada',
+                text: 'La orden ha sido asignada exitosamente',
+                timer: 2000
+            });
+            setTimeout(() => location.reload(), 2000);
+        });
+
+        connection.on("OrdenMovida", (data) => {
+            location.reload();
+        });
+
+        connection.on("AlertaIA", (data) => {
+            document.getElementById("alertaIA").style.display = "block";
+            document.getElementById("mensajeIA").textContent = data.mensaje;
+        });
+
+        connection.start().then(() => {
+            console.log("SignalR conectado");
+            connection.invoke("UnirseAGrupo", "JEFE_SOPORTE");
+        });
+
+        function allowDrop(ev) {
+            ev.preventDefault();
+        }
+
+        function drag(ev) {
+            ev.dataTransfer.setData("text", ev.target.closest(".kanban-card").id);
+        }
+
+        async function drop(ev, nuevoEstado) {
+            ev.preventDefault();
+            const cardId = ev.dataTransfer.getData("text");
+            const card = document.getElementById(cardId);
+            const ordenId = card.getAttribute("data-id");
+            const estadoActual = card.getAttribute("data-estado");
+
+            if (estadoActual === nuevoEstado) return;
+
+            const result = await Swal.fire({
+                title: '¿Mover orden?',
+                text: `¿Estás seguro de mover la orden a ${nuevoEstado}?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, mover',
+                cancelButtonText: 'Cancelar'
+            });
+
+            if (result.isConfirmed) {
+                try {
+                    const response = await fetch(`/api/kanban/mover/${ordenId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({ nuevoEstado: nuevoEstado })
+                    });
+
+                    if (response.ok) {
+                        location.reload();
+                    } else {
+                        const error = await response.json();
+                        Swal.fire('Error', error.message, 'error');
+                    }
+                } catch (error) {
+                    Swal.fire('Error', 'No se pudo mover la orden', 'error');
+                }
+            }
+        }
+
+        async function mostrarDetalleOrden(ordenId) {
+            const modal = new bootstrap.Modal(document.getElementById('ordenModal'));
+            modal.show();
+
+            try {
+                const response = await fetch(`/api/kanban/${ordenId}`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const data = await response.json();
+
+                document.getElementById('ordenDetalleContent').innerHTML = `
+                    <h6>${data.data.numeroOrden}</h6>
+                    <p><strong>Cliente:</strong> ${data.data.cliente}</p>
+                    <p><strong>Equipo:</strong> ${data.data.marca} ${data.data.modelo}</p>
+                    <p><strong>Estado:</strong> ${data.data.estado}</p>
+                    <p><strong>Diagnóstico:</strong> ${data.data.diagnosticoFinal || 'Pendiente'}</p>
+                    <p><strong>Probabilidad Éxito QA:</strong> ${data.data.probabilidadExitoQA ? (data.data.probabilidadExitoQA * 100).toFixed(0) + '%' : 'N/A'}</p>
+                `;
+            } catch (error) {
+                document.getElementById('ordenDetalleContent').innerHTML = '<p class="text-danger">Error al cargar detalle</p>';
+            }
+        }
+
+        function actualizarTablero() {
+            location.reload();
+        }
+    </script>
+}

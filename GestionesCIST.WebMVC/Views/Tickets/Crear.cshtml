@@ -1,0 +1,129 @@
+﻿@model CrearTicketViewModel
+@{
+    ViewData["Title"] = "Crear Nuevo Ticket";
+    Layout = "_Layout";
+}
+
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <h2 class="mb-4"><i class="bi bi-plus-circle text-primary"></i> Reportar Incidencia de Equipo</h2>
+
+            <div class="card shadow">
+                <div class="card-body p-4">
+                    <form asp-action="Crear" method="post" enctype="multipart/form-data" id="ticketForm">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tipo de Equipo</label>
+                            <select asp-for="TipoEquipo" class="form-select">
+                                <option value="">Seleccione...</option>
+                                <option>Laptop</option>
+                                <option>Desktop</option>
+                                <option>Impresora</option>
+                                <option>Servidor</option>
+                                <option>Monitor</option>
+                                <option>Otro</option>
+                            </select>
+                            <span asp-validation-for="TipoEquipo" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold">Marca</label>
+                                <input asp-for="Marca" class="form-control" placeholder="Ej: HP, Dell" />
+                                <span asp-validation-for="Marca" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold">Modelo</label>
+                                <input asp-for="Modelo" class="form-control" placeholder="Modelo" />
+                                <span asp-validation-for="Modelo" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold">N° Serie</label>
+                                <input asp-for="NumeroSerie" class="form-control" placeholder="Opcional" />
+                                <span asp-validation-for="NumeroSerie" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Título del Problema</label>
+                            <input asp-for="Titulo" class="form-control" placeholder="Ej: Mi laptop no enciende" />
+                            <span asp-validation-for="Titulo" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Descripción Detallada</label>
+                            <textarea asp-for="DescripcionProblema" class="form-control" rows="5"
+                                      placeholder="Describe el problema con el mayor detalle posible..."></textarea>
+                            <small class="text-muted">Nuestra IA analizará tu descripción para clasificar automáticamente el ticket.</small>
+                            <span asp-validation-for="DescripcionProblema" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Contacto Alternativo</label>
+                            <input asp-for="ContactoAlternativo" class="form-control" placeholder="Teléfono adicional" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Adjuntar Evidencia (Opcional)</label>
+                            <input type="file" name="ArchivoAdjunto" class="form-control" accept="image/*,video/*" />
+                            <small class="text-muted">Puedes adjuntar fotos o videos del problema</small>
+                        </div>
+
+                        <!-- Predicción IA -->
+                        <div class="alert alert-info" id="prediccionBox" style="display:none;">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-robot fs-3 me-3"></i>
+                                <div>
+                                    <strong>🤖 Análisis IA Preliminar</strong><br>
+                                    <span id="categoriaIA"></span>
+                                    <span class="badge bg-secondary ms-2" id="confianzaIA"></span>
+                                    <br>
+                                    <small id="tiempoEstimadoIA"></small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="bi bi-send"></i> Enviar Ticket
+                            </button>
+                            <a asp-action="MisTickets" class="btn btn-outline-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        let timeout;
+        $('#DescripcionProblema').on('input', function() {
+            clearTimeout(timeout);
+            var texto = $(this).val();
+
+            if (texto.length > 20) {
+                timeout = setTimeout(function() {
+                    $.ajax({
+                        url: '/api/tickets/clasificar',
+                        method: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({ descripcion: texto }),
+                        success: function(response) {
+                            $('#prediccionBox').show();
+                            $('#categoriaIA').text('Categoría: ' + response.data.categoria);
+                            $('#confianzaIA').text((response.data.confianza * 100).toFixed(0) + '% confianza');
+                            $('#tiempoEstimadoIA').text('⏱️ Tiempo estimado: ' + response.data.tiempoEstimadoHoras + ' horas');
+
+                            $('#Prioridad').val(response.data.prioridad);
+                        }
+                    });
+                }, 1000);
+            }
+        });
+    </script>
+}

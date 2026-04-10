@@ -1,8 +1,150 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Inicio";
+    Layout = "_Layout";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="container">
+    @if (!User.Identity.IsAuthenticated)
+    {
+        <!-- Landing Page para visitantes -->
+        <div class="row align-items-center min-vh-75 py-5">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold text-primary">Gestiones CIST</h1>
+                <h2 class="mb-4">Control Inteligente de Soporte Técnico</h2>
+                <p class="lead">Soluciones rápidas y eficientes para la reparación de tus equipos informáticos.</p>
+
+                <div class="mt-4">
+                    <a asp-controller="Account" asp-action="Login" class="btn btn-primary btn-lg me-3">
+                        <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
+                    </a>
+                    <a asp-controller="Account" asp-action="Register" class="btn btn-outline-primary btn-lg">
+                        <i class="bi bi-person-plus"></i> Registrarse
+                    </a>
+                </div>
+
+                <div class="row mt-5">
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <i class="bi bi-ticket-detailed fs-1 text-primary"></i>
+                            <h5>Reporta Incidencias</h5>
+                            <p class="small">Crea tickets fácilmente</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <i class="bi bi-clock-history fs-1 text-primary"></i>
+                            <h5>Seguimiento en Tiempo Real</h5>
+                            <p class="small">Conoce el estado de tu reparación</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="text-center">
+                            <i class="bi bi-robot fs-1 text-primary"></i>
+                            <h5>IA Predictiva</h5>
+                            <p class="small">Diagnósticos más rápidos</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <img src="~/img/hero-image.svg" alt="Gestiones CIST" class="img-fluid" />
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Dashboard para usuarios autenticados -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <h2>Bienvenido, @User.FindFirst("nombreCompleto")?.Value</h2>
+                <p class="text-muted">@DateTime.Now.ToString("dddd, dd 'de' MMMM 'de' yyyy")</p>
+            </div>
+        </div>
+
+        <div class="row mt-3">
+            @if (User.IsInRole("CLIENTE"))
+            {
+                <div class="col-md-4 mb-3">
+                    <div class="card bg-primary text-white h-100">
+                        <div class="card-body">
+                            <i class="bi bi-ticket-perforated fs-1"></i>
+                            <h5 class="mt-2">Mis Tickets</h5>
+                            <a asp-controller="Tickets" asp-action="MisTickets" class="text-white stretched-link"></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card bg-success text-white h-100">
+                        <div class="card-body">
+                            <i class="bi bi-plus-circle fs-1"></i>
+                            <h5 class="mt-2">Nuevo Ticket</h5>
+                            <a asp-controller="Tickets" asp-action="Crear" class="text-white stretched-link"></a>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (User.IsInRole("ADMIN") || User.IsInRole("JEFE_SOPORTE"))
+            {
+                <div class="col-md-3 mb-3">
+                    <div class="card bg-primary text-white h-100">
+                        <div class="card-body">
+                            <i class="bi bi-kanban fs-1"></i>
+                            <h5 class="mt-2">Tablero Kanban</h5>
+                            <a asp-controller="Kanban" asp-action="Index" class="text-white stretched-link"></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card bg-info text-white h-100">
+                        <div class="card-body">
+                            <i class="bi bi-ticket-detailed fs-1"></i>
+                            <h5 class="mt-2">Tickets Pendientes</h5>
+                            <a asp-controller="Tickets" asp-action="Index" class="text-white stretched-link"></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card bg-warning text-dark h-100">
+                        <div class="card-body">
+                            <i class="bi bi-people fs-1"></i>
+                            <h5 class="mt-2">Técnicos</h5>
+                            <a asp-controller="Admin" asp-action="Tecnicos" class="text-dark stretched-link"></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card bg-success text-white h-100">
+                        <div class="card-body">
+                            <i class="bi bi-graph-up fs-1"></i>
+                            <h5 class="mt-2">Reportes</h5>
+                            <a asp-controller="Analytics" asp-action="Index" class="text-white stretched-link"></a>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (User.IsInRole("TECNICO"))
+            {
+                <div class="col-md-4 mb-3">
+                    <div class="card bg-info text-white h-100">
+                        <div class="card-body">
+                            <i class="bi bi-tools fs-1"></i>
+                            <h5 class="mt-2">Mis Órdenes</h5>
+                            <a asp-controller="Tecnico" asp-action="MisOrdenes" class="text-white stretched-link"></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card bg-primary text-white h-100">
+                        <div class="card-body">
+                            <i class="bi bi-kanban fs-1"></i>
+                            <h5 class="mt-2">Tablero Kanban</h5>
+                            <a asp-controller="Kanban" asp-action="Index" class="text-white stretched-link"></a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
 </div>

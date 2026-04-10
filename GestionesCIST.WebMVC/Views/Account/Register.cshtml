@@ -1,0 +1,114 @@
+﻿@model RegisterViewModel
+@{
+    ViewData["Title"] = "Registro de Cliente";
+    Layout = "_Layout";
+}
+
+<div class="container">
+    <div class="row justify-content-center mt-4">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-lg border-0 rounded-lg">
+                <div class="card-header bg-success text-white text-center py-4">
+                    <h3 class="mb-0"><i class="bi bi-person-plus"></i> Registro de Cliente</h3>
+                    <p class="mb-0">Crea tu cuenta para acceder a nuestros servicios</p>
+                </div>
+                <div class="card-body p-4">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Importante:</strong> Tu cuenta quedará pendiente de aprobación por nuestro equipo administrativo.
+                        Recibirás un correo cuando sea activada.
+                    </div>
+
+                    <form asp-action="Register" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input asp-for="Nombres" class="form-control" placeholder="Nombres" />
+                                    <label asp-for="Nombres">Nombres</label>
+                                    <span asp-validation-for="Nombres" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input asp-for="Apellidos" class="form-control" placeholder="Apellidos" />
+                                    <label asp-for="Apellidos">Apellidos</label>
+                                    <span asp-validation-for="Apellidos" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="Email" class="form-control" placeholder="correo@ejemplo.com" />
+                            <label asp-for="Email">Correo Electrónico</label>
+                            <span asp-validation-for="Email" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <select asp-for="TipoDocumento" class="form-select">
+                                        <option value="DNI">DNI</option>
+                                        <option value="RUC">RUC</option>
+                                        <option value="CE">Carnet de Extranjería</option>
+                                    </select>
+                                    <label asp-for="TipoDocumento">Tipo de Documento</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input asp-for="NumeroDocumento" class="form-control" placeholder="Número" />
+                                    <label asp-for="NumeroDocumento">Número de Documento</label>
+                                    <span asp-validation-for="NumeroDocumento" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-floating mb-3">
+                            <input asp-for="Telefono" class="form-control" placeholder="Teléfono" />
+                            <label asp-for="Telefono">Teléfono de Contacto</label>
+                            <span asp-validation-for="Telefono" class="text-danger"></span>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input asp-for="Password" class="form-control" placeholder="Contraseña" />
+                                    <label asp-for="Password">Contraseña</label>
+                                    <span asp-validation-for="Password" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="form-floating">
+                                    <input asp-for="ConfirmPassword" class="form-control" placeholder="Confirmar" />
+                                    <label asp-for="ConfirmPassword">Confirmar Contraseña</label>
+                                    <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="bi bi-check-circle"></i> Registrar Cuenta
+                            </button>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="text-center">
+                            <p class="mb-0">¿Ya tienes una cuenta?</p>
+                            <a asp-action="Login" class="btn btn-outline-primary mt-2">
+                                <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

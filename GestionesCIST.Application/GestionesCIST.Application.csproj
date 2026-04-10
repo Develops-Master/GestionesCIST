@@ -18,13 +18,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="DTOs\Auth\" />
-    <Folder Include="DTOs\Kanban\" />
-    <Folder Include="DTOs\Analytics\" />
-    <Folder Include="DTOs\Common\" />
-    <Folder Include="DTOs\Ordenes\" />
-    <Folder Include="DTOs\Tickets\" />
-    <Folder Include="Interfaces\" />
     <Folder Include="Mappings\" />
     <Folder Include="Behaviors\" />
     <Folder Include="Commands\" />
@@ -33,7 +26,6 @@
     <Folder Include="Constants\" />
     <Folder Include="Queries\" />
     <Folder Include="Validators\" />
-    <Folder Include="Services\" />
   </ItemGroup>
 
 </Project>
