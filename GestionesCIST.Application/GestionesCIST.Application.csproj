@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
+    <PackageReference Include="MediatR" Version="14.1.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GestionesCIST.Domain\GestionesCIST.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="DTOs\Auth\" />
+    <Folder Include="DTOs\Kanban\" />
+    <Folder Include="DTOs\Analytics\" />
+    <Folder Include="DTOs\Common\" />
+    <Folder Include="DTOs\Ordenes\" />
+    <Folder Include="DTOs\Tickets\" />
+    <Folder Include="Interfaces\" />
+    <Folder Include="Mappings\" />
+    <Folder Include="Behaviors\" />
+    <Folder Include="Commands\" />
+    <Folder Include="Exceptions\" />
+    <Folder Include="Helpers\" />
+    <Folder Include="Constants\" />
+    <Folder Include="Queries\" />
+    <Folder Include="Validators\" />
+    <Folder Include="Services\" />
+  </ItemGroup>
+
+</Project>
