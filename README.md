@@ -28,4 +28,4 @@ Sistema integral de gestión de tickets y órdenes de servicio para reparación 
 5. Ejecutar aplicación: `dotnet run --project src/01-Presentation/GestionesCIST.WebAPI`
 
 ## Autor
-Ingeniería de Sistemas - LUIS HIDER MANCO BERROCAL
+Ingeniería de Sistemas - 
